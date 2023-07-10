@@ -1,0 +1,49 @@
+summary: Fetch many Restaurant
+tasks:
+  - id: postgres_restaurant_search
+    fn: com.gs.datastore
+    args:
+      datasource: postgres
+      data:
+        where:
+          location:
+            contains: <% inputs.body.location %>
+            mode: 'insensitive'
+        select:
+          name: true
+          location: true
+          since: true
+          isOpen: true
+          opsStartTime: true
+          opsEndTime: true
+          id: true
+          menuItems:
+            select:
+              name: true
+              description: true
+              price: true
+              couponCode: true
+      config:
+        method: Restaurant.findMany
+
+  - id: postgres_menuitems_search
+    fn: com.gs.datastore
+    args:
+      datasource: postgres
+      data:
+        where:
+          couponCode:
+            equals: 
+            - <% inputs.body.couponCode %>
+      config:
+        method: MenuItems.findMany
+
+ 
+
+  - id: join_response
+    fn: com.gs.return
+    args: |
+      <% {
+        restaurants: outputs.postgres_restaurant_search.data, 
+        menuItems: outputs.postgres_menuitems_search.data
+      } %>
